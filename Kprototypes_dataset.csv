@@ -1,0 +1,16 @@
+Student,EQ Rating,IQ Rating,Gender,Height(in cms),Weight(in Kgs)
+Student 1,A,B,F,155,53
+Student 2,A,A,M,174,70
+Student 3,C,C,M,177,75
+Student 4,C,A,F,182,80
+Student 5,B,A,M,152,76
+Student 6,A,B,M,160,69
+Student 7,B,A,F,175,55
+Student 8,A,A,F,181,70
+Student 9,A,C,M,180,85
+Student 10,A,B,F,166,54
+Student 11,C,C,M,162,66
+Student 12,A,C,M,153,74
+Student 13,A,B,M,160,62
+Student 14,B,C,F,169,59
+Student 15,A,B,F,171,71

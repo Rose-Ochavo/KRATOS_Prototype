@@ -1,0 +1,15 @@
+CustomerID,Genre,Age,Annual Income (k$),Spending Score (1-100)
+1,Male,19,fifteen,thirtynine
+2,Male,21,fifteen,eightone
+3,Female,20,sixteen,six
+4,Female,23,sixteen,sevenseven
+5,Female,31,seventeen,forty
+6,Female,22,seventeen,sevensix
+7,Female,35,eighteen,six
+8,Female,23,eighteen,ninefor
+9,Male,64,nineteen,tree
+10,Female,30,nineteen,seventwo
+11,Male,67,nineteen,forteen
+12,Female,35,nineteen,ninenine
+13,Female,58,twenty,fifteen
+14,Female,24,twenty,sevenseven
