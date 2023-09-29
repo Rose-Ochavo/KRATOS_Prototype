@@ -19,14 +19,15 @@ def load_and_process_data(uploaded_file):
     data = []
 
     # Read lines from uploaded_file and decode each line
-    decoded_file = [line.decode('utf-8') for line in uploaded_file.readlines()]
-    csv_reader = csv.reader(decoded_file)
+    decoded_file = [line.decode('utf-8') for line in uploaded_file.readlines()] # reads all the lines from `uploaded_file`
+    csv_reader = csv.reader(decoded_file) # read the csv format
+    # You can then use this csv_reader object to iterate through the rows and columns of the CSV data.
 
     for row in csv_reader:
-        data.append(row)
+        data.append(row) # append = add an element to the end of an existing list
 
     headers = data[0]
-    data = data[1:]
+    data = data[1:] # slice the list starting from 1
 
     # Convert price to float
     for row in data:
