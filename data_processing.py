@@ -30,28 +30,55 @@ def load_and_process_data(uploaded_file):
     data = data[1:] # slice the list starting from 1
 
     # Convert price to float
+    # iterating through a dataset row by row,
     for row in data:
+        # Process each row, where row is a list of column values
         try:
-            row[4] = float(row[4])
-        except ValueError:
-            row[4] = 0.0
+            row[4] = float(row[4]) # Access the fifth column of the current row
+        except ValueError: # correct data type but an inappropriate value
+            row[4] = 0.0 # assign it to 0.0
 
         try:
-            row[5] = float(re.sub('[^0-9.]', '', row[5]))
+            row[5] = float(re.sub('[^0-9.]', '', row[5])) # remove any characters that are not digits or periods (i.e., non-numeric characters) 
         except ValueError:
             row[5] = 0.0  # Or another placeholder value
 
     # Using label encoders to convert string data into numeric for clustering
+    # This encoder is used to convert categorical data (like brand names) into numerical labels.
     brand_encoder = LabelEncoder()
     date_encoder = LabelEncoder()
 
+    # create list of brands and dates
+    # iterates through each `row` in the `data`
+    # For each `row`, it extracts the value in the third column (column index 2) and adds that value to the `brands` list.
     brands = [row[2] for row in data]
     dates = [row[6] for row in data]
 
+    # fit_transform(brands) = a method call on the brand_encoder object. This method does two things:
+    """ *Fitting = It learns the mapping between unique brand names and numeric labels.
+          assign a unique numeric label to each unique brand in the `brands` list. """  
+    # *Transforming = replacing each brand name with its corresponding numeric label
     encoded_brands = brand_encoder.fit_transform(brands)
     encoded_dates = date_encoder.fit_transform(dates)
 
-    for idx, row in enumerate(data):
+    # idx = index number of the data from the list ex.:
+    """
+        data = [['John', 'Doe', '30'],
+            ['Jane', 'Smith', '25'],
+            ['Bob', 'Johnson', '40']]
+
+        for idx, row in enumerate(data):
+            print(f"Index: {idx}, Data: {row}")
+
+        # Output
+        Index: 0, Data: ['John', 'Doe', '30']
+        Index: 1, Data: ['Jane', 'Smith', '25']
+        Index: 2, Data: ['Bob', 'Johnson', '40']
+    """
+    # enumerate() function is used to get both the index (idx) and the content of each row (row) in the list.
+    # It will iterate through each row in the `data` list and replace the values in specific columns with their corresponding encoded values
+    # row[2] and row[6] in eacht row of data will be replace with encoded data `encoded_brands[idx]` 
+    for idx, row in enumerate(data): # iterates through each row in the `data` list
         row[2] = encoded_brands[idx]  # Encoded brand
         row[6] = encoded_dates[idx]  # Encoded date
 
