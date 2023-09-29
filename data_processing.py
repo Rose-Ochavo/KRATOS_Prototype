@@ -51,6 +51,7 @@ def load_and_process_data(uploaded_file):
     # create list of brands and dates
     # iterates through each `row` in the `data`
     # For each `row`, it extracts the value in the third column (column index 2) and adds that value to the `brands` list.
+    # documentionlink(1)
     brands = [row[2] for row in data]
     dates = [row[6] for row in data]
 
@@ -85,8 +86,10 @@ def load_and_process_data(uploaded_file):
     return data, headers,brand_encoder, date_encoder
 
 def visualize_data(data, headers,brand_encoder, date_encoder):
+    # In the encoder=None parameter, if no argument is provided when calling the function, it will be automatically set to `None` as its default value.
     def apply_kmeans_on_single_column(data, column_idx, encoder=None, n_clusters=4):
         # Extract the relevant column data
+        # Similar to documentionlink(1)
         X = np.array([[row[column_idx]] for row in data])
         
         # If the data is continuous, it's a good idea to scale it
