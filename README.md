@@ -1,1 +1,0 @@
-# KRATOS_Prototype 
