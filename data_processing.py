@@ -93,9 +93,23 @@ def visualize_data(data, headers,brand_encoder, date_encoder):
         X = np.array([[row[column_idx]] for row in data])
         
         # If the data is continuous, it's a good idea to scale it
+        # responsible for scaling the data when necessary before applying K-Means clustering
+        # isinstance(X[0][0], (int, float)) = checks whether the first element (row 0, column 0) of the data array X is an instance of either an int or a float. 
+        # column_idx not in [5, 6] = checks whether the `column_idx` is not in the list [5, 6]
+            # it checks if the column being processed is not the 6th or 7th column
+        
         if isinstance(X[0][0], (int, float)) and column_idx not in [5, 6]:  # Exclude special columns from scaling
             scaler = StandardScaler()
-            X_scaled = scaler.fit_transform(X)
+            X_scaled = scaler.fit_transform(X) # Standardize the data in X, ensuring it has a mean of 0 and a standard deviation of 1.
+            # Scaling = process of transforming the numeric values in a dataset so that they have a similar scale or magnitude
+                #  It involves adjusting the range of values while preserving the underlying patterns and relationships in the data.
+
+            # Why Scaling Matters:
+                # Imagine you have a dataset with multiple columns or features, and these features have different units or measurement scales. For example, one feature could represent age in years, another could represent income in dollars, and a third could represent the number of bedrooms in a house. Each of these features can have vastly different ranges of values.
+
+            # K-Means clustering = These algorithms often use mathematical calculations that involve the data's magnitude. If the features are not on a similar scale, it can lead to various problems:
+                # Magnitude Dominance: Features with larger magnitudes may dominate the influence over those with smaller magnitudes. As a result, the algorithm may incorrectly prioritize certain features.
+                # Algorithm Sensitivity: Certain algorithms, such as K-Means clustering, rely on distance calculations. Features with larger scales can disproportionately affect the distance calculations and cluster assignments.
         else:
             X_scaled = X
         
