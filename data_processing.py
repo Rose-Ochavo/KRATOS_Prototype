@@ -26,7 +26,8 @@ def load_and_process_data(uploaded_file):
     for row in csv_reader:
         data.append(row) # append = add an element to the end of an existing list
 
-    headers = data[0]
+    # ['ID', 'TRANSACTION', 'BRAND', 'ITEM', 'QUANTITY', 'PRICE', 'DATE']
+    headers = data[0] # first row of the data list
     data = data[1:] # slice the list starting from 1
 
     # Convert price to float
@@ -126,7 +127,7 @@ def visualize_data(data, headers,brand_encoder, date_encoder):
             # Updates the cluster centroids based on the mean of the data points assigned to each cluster.
             # Repeats the assignment and update steps until convergence (i.e., when the cluster assignments and centroids no longer change significantly).
         kmeans = KMeans(n_clusters=n_clusters, random_state=42).fit(X_scaled)
-        labels = kmeans.labels_ # s an attribute of the fitted KMeans object, which stores the cluster labels assigned to each data point.
+        labels = kmeans.labels_ # is an attribute of the fitted KMeans object, which stores the cluster labels assigned to each data point.
         
         # Calculate the silhouette score
         # The silhouette score tells us how good our clusters are:
@@ -188,19 +189,34 @@ def visualize_data(data, headers,brand_encoder, date_encoder):
     #clustering two clumn together
     # Custom function to apply KMeans and calculate silhouette score
     def apply_kmeans_and_evaluate(data, columns, encoders=None, n_clusters=3):
-        col_indices = [headers.index(col) for col in columns]
-        X = np.array([[row[i] for i in col_indices] for row in data])
+        # # Create a list of column indices by iterating through the specified columns and finding their indices in the 'headers' list
+        col_indices = [headers.index(col) for col in columns] # col = columns iterate and find col from headers in index(col)
+        X = np.array([[row[i] for i in col_indices] for row in data]) # create an array list of all ["BRAND", "DATE"] from the data
         
         # Apply KMeans clustering
+        # `random_state` parameter is used to control the random initialization of centroids in the clustering process.
+            # random initialization of centroids
+            # Avoiding Initialization Bias
+        # .fit(X_scaled) is the part where the model is trained. It takes the scaled data X_scaled and performs the following steps:
+            # Initializes cluster centroids randomly (or according to some initialization method).
+            # Repeatedly assigns each data point to the nearest cluster centroid.
+            # Updates the cluster centroids based on the mean of the data points assigned to each cluster.
+            # Repeats the assignment and update steps until convergence (i.e., when the cluster assignments and centroids no longer change significantly).
         kmeans = KMeans(n_clusters=n_clusters, random_state=42).fit(X)
-        labels = kmeans.labels_
+        labels = kmeans.labels_ # is an attribute of the fitted KMeans object, which stores the cluster labels assigned to each data point.
         
         # Calculate the silhouette score
+        # The silhouette score tells us how good our clusters are:
+            # - It measures how close the items inside a cluster are to each other compared to items in other clusters.
+            # - It gives us a score between -1 and +1:
+            #   - A higher score means our clusters are good and distinct.
+            #   - A lower score means our clusters might not be very clear.
         silhouette_avg = silhouette_score(X, labels)
         st.write(f"Silhouette Score for columns {columns}: {silhouette_avg:.2f}")
 
         
         # Plotting the clusters
+        # skip plt
         plt.figure(figsize=(10, 6))
         plt.scatter(X[:, 0], X[:, 1], c=kmeans.labels_, cmap='rainbow')
         plt.scatter(kmeans.cluster_centers_[:, 0], kmeans.cluster_centers_[:, 1], s=200, c='black', marker='X')
@@ -235,10 +251,35 @@ def visualize_data(data, headers,brand_encoder, date_encoder):
     # 2. Price and Quantity
     apply_kmeans_and_evaluate(data, ["PRICE", "QUANTITY"])
 
+    # Using label encoders to convert string data into numeric for clustering
+    # This encoder is used to convert categorical data (like brand names) into numerical labels.
     product_encoder = LabelEncoder()
-    encoded_products = product_encoder.fit_transform([row[3] for row in data])
 
-    for idx, row in enumerate(data):
+    # in column 3 [ITEM] in each row of the data
+    # fit_transform(ITEM) = a method call on the product_encoder object. This method does two things:
+    """ *Fitting = It learns the mapping between unique ITEM names and numeric labels.
+            assign a unique numeric label to each unique ITEM in the `ITEM` list. """  
+    # *Transforming = replacing each ITEM name with its corresponding numeric label
+    encoded_products = product_encoder.fit_transform([row[3] for row in data]) 
+
+    # idx = index number of the data from the list ex.:
+    """
+        data = [['John', 'Doe', '30'],
+            ['Jane', 'Smith', '25'],
+            ['Bob', 'Johnson', '40']]
+
+        for idx, row in enumerate(data):
+            print(f"Index: {idx}, Data: {row}")
+
+        # Output
+        Index: 0, Data: ['John', 'Doe', '30']
+        Index: 1, Data: ['Jane', 'Smith', '25']
+        Index: 2, Data: ['Bob', 'Johnson', '40']
+    """
+    # enumerate() function is used to get both the index (idx) and the content of each row (row) in the list.
+    # It will iterate through each row in the `data` list and replace the values in specific columns with their corresponding encoded values
+    # row[3] in each row of data will be replace with encoded data `encoded_products[idx]` 
+    for idx, row in enumerate(data): # iterates through each row in the `data` list
         row[3] = encoded_products[idx]  # Encoded product
 
     # Apply k-means clustering on 'Product' and 'Month'
