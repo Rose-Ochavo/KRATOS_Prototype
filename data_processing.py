@@ -103,6 +103,8 @@ def visualize_data(data, headers,brand_encoder, date_encoder):
             X_scaled = scaler.fit_transform(X) # Standardize the data in X, ensuring it has a mean of 0 and a standard deviation of 1.
             # Scaling = process of transforming the numeric values in a dataset so that they have a similar scale or magnitude
                 #  It involves adjusting the range of values while preserving the underlying patterns and relationships in the data.
+                # Scaling method used: [https://www.simplilearn.com/normalization-vs-standardization-article]
+                    # `StandardScaler` from the sklearn.preprocessing module is used for scaling the data before applying the K-Means
 
             # Why Scaling Matters:
                 # Imagine you have a dataset with multiple columns or features, and these features have different units or measurement scales. For example, one feature could represent age in years, another could represent income in dollars, and a third could represent the number of bedrooms in a house. Each of these features can have vastly different ranges of values.
