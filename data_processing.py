@@ -139,6 +139,7 @@ def visualize_data(data, headers,brand_encoder, date_encoder):
 
         
         # Visualization
+        # skip plt
         plt.figure(figsize=(10, 6))
         plt.scatter(X, [i for i in range(len(X))], c=kmeans.labels_, cmap='rainbow')
         
