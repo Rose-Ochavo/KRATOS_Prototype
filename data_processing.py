@@ -100,7 +100,8 @@ def visualize_data(data, headers,brand_encoder, date_encoder):
         
         if isinstance(X[0][0], (int, float)) and column_idx not in [5, 6]:  # Exclude special columns from scaling
             scaler = StandardScaler()
-            X_scaled = scaler.fit_transform(X) # Standardize the data in X, ensuring it has a mean of 0 and a standard deviation of 1.
+            X_scaled = scaler.fit_transform(X) # fit_transform method of the StandardScaler
+            # Standardize the data in X, ensuring it has a mean of 0 and a standard deviation of 1.
             # Scaling = process of transforming the numeric values in a dataset so that they have a similar scale or magnitude
                 #  It involves adjusting the range of values while preserving the underlying patterns and relationships in the data.
                 # Scaling method used: [https://www.simplilearn.com/normalization-vs-standardization-article]
@@ -116,10 +117,23 @@ def visualize_data(data, headers,brand_encoder, date_encoder):
             X_scaled = X
         
         # Apply KMeans clustering
+        # `random_state` parameter is used to control the random initialization of centroids in the clustering process.
+            # random initialization of centroids
+            # Avoiding Initialization Bias
+        # .fit(X_scaled) is the part where the model is trained. It takes the scaled data X_scaled and performs the following steps:
+            # Initializes cluster centroids randomly (or according to some initialization method).
+            # Repeatedly assigns each data point to the nearest cluster centroid.
+            # Updates the cluster centroids based on the mean of the data points assigned to each cluster.
+            # Repeats the assignment and update steps until convergence (i.e., when the cluster assignments and centroids no longer change significantly).
         kmeans = KMeans(n_clusters=n_clusters, random_state=42).fit(X_scaled)
-        labels = kmeans.labels_
+        labels = kmeans.labels_ # s an attribute of the fitted KMeans object, which stores the cluster labels assigned to each data point.
         
         # Calculate the silhouette score
+        # The silhouette score tells us how good our clusters are:
+            # - It measures how close the items inside a cluster are to each other compared to items in other clusters.
+            # - It gives us a score between -1 and +1:
+            #   - A higher score means our clusters are good and distinct.
+            #   - A lower score means our clusters might not be very clear.
         silhouette_avg = silhouette_score(X_scaled, labels)
         st.text(f"Silhouette Score for column {headers[column_idx]}: {silhouette_avg:.2f}")
 
