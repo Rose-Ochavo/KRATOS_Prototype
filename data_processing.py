@@ -297,7 +297,9 @@ def display_association_results(uploaded_file):
     # Read the CSV from the decoded content
     data = [row for row in csv.reader(text_data)]
     
-    
+    # This part of the code creates a dictionary called transactions using defaultdict(set). It's used to group products by transactions, where each transaction ID is associated with a set of items.
+    # It iterates through each row in the data list (which represents the CSV rows) and extracts the transaction_id (column at index 1) and the item (column at index 3) for each row.
+    # It then adds each item to the set of items associated with the corresponding transaction_id in the transactions dictionary.
     # Grouping products by transactions
     transactions = defaultdict(set)
     for row in data:
@@ -314,15 +316,16 @@ def display_association_results(uploaded_file):
 
     # Count itemsets
     itemset_counts = Counter()
-    max_itemset_size = 2
+    max_itemset_size = 2 # item pairs
 
     for items in transactions.values():
-        if len(items) < 2:
+        if len(items) < 2: # checks if the transaction has fewer than 2 items, then continue to another transaction
             continue
-        for L in range(2, min(len(items), max_itemset_size) + 1):
-            for subset in combinations(items, L):
+        for L in range(2, min(len(items), max_itemset_size) + 1): # Without + 1, the loop would iterate up to, but not including, max_itemset_size.
+                # if max_itemset_size is set to 2, and a transaction has 2 items, you would want the loop to generate itemsets of size 2 (i.e., pairs). Without + 1, the loop would stop at 1, and pairs would not be generated. With + 1, it ensures that pairs are generated as well.
+            for subset in combinations(items, L): # generates all possible combinations of L items from the items list.
                 itemset = frozenset(subset)
-                itemset_counts[itemset] += 1
+                itemset_counts[itemset] += 1 # This counts how many times each itemset appears in the transactions.
 
     # Calculate support for each itemset
     itemset_support.update({itemset: count/total_transactions for itemset, count in itemset_counts.items()})
@@ -330,6 +333,7 @@ def display_association_results(uploaded_file):
     # Sorting the itemsets by support
     sorted_itemsets = sorted(itemset_support.items(), key=lambda x: x[1], reverse=True)
 
+    # extracts the top 10 2-itemsets (pairs) with the highest support values from the sorted_itemsets list.
     # Extract 2-itemsets
     sorted_2_itemsets = [(itemset, support) for itemset, support in sorted_itemsets if len(itemset) == 2][:10]
 
@@ -337,13 +341,13 @@ def display_association_results(uploaded_file):
     association_rules = []
     for itemset, support in itemset_support.items():
         if len(itemset) == 2:
-            for item in itemset:
+            for item in itemset: # For each 2-itemset, create association rules.
                 antecedent = frozenset([item])
-                consequent = itemset - antecedent
+                consequent = itemset - antecedent # It's what you expect to be purchased alongside the antecedent.
 
                 antecedent_support = itemset_support.get(antecedent, 0)
                 confidence = support / antecedent_support
-                association_rules.append((antecedent, consequent, confidence))
+                association_rules.append((antecedent, consequent, confidence)) # adds an association rule to a list
 
     # Sort rules by support and then confidence
     sorted_rules = sorted(association_rules, key=lambda x: (itemset_support[x[0] | x[1]], x[2]), reverse=True)
