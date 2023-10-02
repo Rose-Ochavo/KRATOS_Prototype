@@ -290,6 +290,7 @@ def visualize_data(data, headers,brand_encoder, date_encoder):
 
 
 # Does not involved training
+# provides insights into associations between items in the data.
 def display_association_results(uploaded_file):
     # Read directly from uploaded_file using csv.reader
     text_data = io.StringIO(uploaded_file.getvalue().decode("utf-8"))
