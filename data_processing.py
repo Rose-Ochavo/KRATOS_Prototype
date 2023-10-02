@@ -86,6 +86,7 @@ def load_and_process_data(uploaded_file):
 
     return data, headers,brand_encoder, date_encoder
 
+# involved training
 def visualize_data(data, headers,brand_encoder, date_encoder):
     # In the encoder=None parameter, if no argument is provided when calling the function, it will be automatically set to `None` as its default value.
     def apply_kmeans_on_single_column(data, column_idx, encoder=None, n_clusters=4):
@@ -126,6 +127,8 @@ def visualize_data(data, headers,brand_encoder, date_encoder):
             # Repeatedly assigns each data point to the nearest cluster centroid.
             # Updates the cluster centroids based on the mean of the data points assigned to each cluster.
             # Repeats the assignment and update steps until convergence (i.e., when the cluster assignments and centroids no longer change significantly).
+        # The training process involves initializing cluster centroids randomly, assigning data points to the nearest cluster centroids, updating cluster centroids based on the mean of assigned data points, and repeating these steps until convergence.
+	        # After training, the model stores the cluster assignments in kmeans.labels_.
         kmeans = KMeans(n_clusters=n_clusters, random_state=42).fit(X_scaled)
         labels = kmeans.labels_ # is an attribute of the fitted KMeans object, which stores the cluster labels assigned to each data point.
         
@@ -286,7 +289,7 @@ def visualize_data(data, headers,brand_encoder, date_encoder):
     apply_kmeans_and_evaluate(data, ["ITEM", "PRICE"])
 
 
-
+# Does not involved training
 def display_association_results(uploaded_file):
     # Read directly from uploaded_file using csv.reader
     text_data = io.StringIO(uploaded_file.getvalue().decode("utf-8"))
@@ -373,7 +376,7 @@ def display_association_results(uploaded_file):
     
 
 
-
+# involved training
 def run_random_forest_regression(uploaded_file):
     text_data = io.StringIO(uploaded_file.getvalue().decode("utf-8"))
     
