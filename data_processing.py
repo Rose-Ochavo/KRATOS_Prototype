@@ -354,6 +354,7 @@ def display_association_results(uploaded_file):
     sorted_rules = sorted(association_rules, key=lambda x: (itemset_support[x[0] | x[1]], x[2]), reverse=True)
 
     # Displaying the results in Streamlit
+    # Skip
     st.subheader("Top Itemsets with Support:")
     for itemset, support in sorted_itemsets[:10]:
         st.write(f"{', '.join(itemset)}: Support = {support:.2f}")
@@ -407,21 +408,30 @@ def run_random_forest_regression(uploaded_file):
 
     for brand in brands:
         brand_data = df[df['BRAND'] == brand]
+        # .size() = count the number of occurrences
+        # .reindex() =  includes all months
+            # If a month is missing in the original data, it will be added to the Series 
         monthly_sales = brand_data.groupby('Month_Name').size().reindex(month_order, fill_value=0).reset_index(name='Occurrences')
-        months = np.array(range(1, len(monthly_sales) + 1)).reshape(-1, 1)
+        months = np.array(range(1, len(monthly_sales) + 1)).reshape(-1, 1) # create an array `months` that represents the months as numerical values. 
         
         # Splitting the data into training and testing sets
         X_train, X_test, y_train, y_test = train_test_split(months, monthly_sales['Occurrences'], test_size=0.3, random_state=42)
         
         # Using a Random Forest Regressor
-        model = RandomForestRegressor(n_estimators=100, random_state=42)
-        model.fit(X_train, y_train)
-        predictions = model.predict(X_test)
+        # training and prediction
+        # n_estimators=100: This parameter specifies the number of decision trees 
+        model = RandomForestRegressor(n_estimators=100, random_state=42) # Model Initialization:
+        model.fit(X_train, y_train) # Model Training
+            # trains the Random Forest Regressor model using the provided training data.
+            # X_train: months
+            # y_train: monthly sales occurrences corresponding to each month in X_train.
+        predictions = model.predict(X_test) # Making Predictions
+            # predict brand popularity for a set of future time periods (X_test). 
         
         # Evaluate the model
-        mae = mean_absolute_error(y_test, predictions)
+        mae = mean_absolute_error(y_test, predictions) # measures the average absolute difference between the actual and predicted values
         mse = mean_squared_error(y_test, predictions)
-        r2 = r2_score(y_test, predictions)
+        r2 = r2_score(y_test, predictions) # R2 score ranges between 0 and 1, where 1 indicates a perfect fit, and lower values indicate worse model performance.
         evaluation_scores[brand] = (mae, mse, r2)
         
         # Predict the occurrences for the next 3 months
