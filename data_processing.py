@@ -6,7 +6,7 @@ from itertools import combinations
 from sklearn.preprocessing import LabelEncoder, StandardScaler # LabelEncoder = a class
 from sklearn.cluster import KMeans
 from sklearn.metrics import silhouette_score
-import numpy as np
+import numpy as np # library
 import streamlit as st
 import io
 from sklearn.ensemble import RandomForestRegressor
@@ -422,27 +422,42 @@ def run_random_forest_regression(uploaded_file):
         # Using a Random Forest Regressor
         # training and prediction
         # n_estimators=100: This parameter specifies the number of decision trees 
+            # 100 trees strike a balance between accuracy and computational efficiency.
+        # RandomForestRegressor = a class
+            # 'random_state' makes sure that random results remain the same in every execution, as long as you use the same 'random_state' number.
         model = RandomForestRegressor(n_estimators=100, random_state=42) # Model Initialization:
-        model.fit(X_train, y_train) # Model Training
+        model.fit(X_train, y_train) # Model Training.. fit() = method
+            # fit method is to train the machine learning model on a given dataset. During training, the model learns the underlying patterns and relationships in the data that allow it to make predictions.
             # trains the Random Forest Regressor model using the provided training data.
+            
             # X_train: months
             # y_train: monthly sales occurrences corresponding to each month in X_train.
+
         predictions = model.predict(X_test) # Making Predictions
             # predict brand popularity for a set of future time periods (X_test). 
         
         # Evaluate the model
+        # smaller MAE the better the model's predictions 
         mae = mean_absolute_error(y_test, predictions) # measures the average absolute difference between the actual and predicted values
-        mse = mean_squared_error(y_test, predictions)
-        r2 = r2_score(y_test, predictions) # R2 score ranges between 0 and 1, where 1 indicates a perfect fit, and lower values indicate worse model performance.
-        evaluation_scores[brand] = (mae, mse, r2)
+
+        # Lower MSE values indicate better model performance.
+        mse = mean_squared_error(y_test, predictions) # calculates the average of the squared differences 
+        r2 = r2_score(y_test, predictions) # calculates the R-squared (R²) score
+            # R squared R2 score ranges between 0 and 1, where 1 indicates a perfect fit, and lower values indicate worse model performance.
+        evaluation_scores[brand] = (mae, mse, r2) # stores evaluation scores in a dictionary
         
         # Predict the occurrences for the next 3 months
+        # redundancy = len(monthly_sales) + 1
+        # np.array = convert indices to numpay array
+        # .reshape = reshapes the NumPy array into a two-dimensional array
+            # model.predict function expects input data to be in a two-dimensional format
         future_months = np.array(range(len(monthly_sales) + 1, len(monthly_sales) + 4)).reshape(-1, 1)
-        future_predictions = model.predict(future_months)
+        future_predictions = model.predict(future_months) # uses a trained machine learning model to make predictions for the future months
         
         # Plot the data
-        all_data = list(monthly_sales['Occurrences']) + list(future_predictions)
-        all_months = month_order + [calendar.month_name[(month_order.index(month_order[-1]) + 1 + i) % 12 + 1] for i in range(3)]
+        all_data = list(monthly_sales['Occurrences']) + list(future_predictions) # concat the two lists
+        all_months = month_order + [calendar.month_name[(month_order.index(month_order[-1]) + 1 + i) % 12 + 1] for i in range(3)] # concat the list of months and the names of the next 3 months
+
         ax.plot(all_months, all_data, marker='o', label=brand)
         ax.scatter(month_order, monthly_sales['Occurrences'], color='gray')  # actual data points
 
