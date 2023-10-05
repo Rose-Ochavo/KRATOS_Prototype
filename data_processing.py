@@ -3,7 +3,7 @@ import re
 import matplotlib.pyplot as plt
 from collections import Counter, defaultdict
 from itertools import combinations
-from sklearn.preprocessing import LabelEncoder, StandardScaler
+from sklearn.preprocessing import LabelEncoder, StandardScaler # LabelEncoder = a class
 from sklearn.cluster import KMeans
 from sklearn.metrics import silhouette_score
 import numpy as np
@@ -19,6 +19,7 @@ def load_and_process_data(uploaded_file):
     data = []
 
     # Read lines from uploaded_file and decode each line
+    # utf-8 = supports all characters from all writing systems in the world
     decoded_file = [line.decode('utf-8') for line in uploaded_file.readlines()] # reads all the lines from `uploaded_file`
     csv_reader = csv.reader(decoded_file) # read the csv format
     # You can then use this csv_reader object to iterate through the rows and columns of the CSV data.
@@ -46,7 +47,9 @@ def load_and_process_data(uploaded_file):
 
     # Using label encoders to convert string data into numeric for clustering
     # This encoder is used to convert categorical data (like brand names) into numerical labels.
-    brand_encoder = LabelEncoder()
+    # convert strings (categorical labels) into unique numbers.
+        # assigns a unique integer to each unique string label
+    brand_encoder = LabelEncoder() 
     date_encoder = LabelEncoder()
 
     # create list of brands and dates
@@ -99,7 +102,6 @@ def visualize_data(data, headers,brand_encoder, date_encoder):
         # isinstance(X[0][0], (int, float)) = checks whether the first element (row 0, column 0) of the data array X is an instance of either an int or a float. 
         # column_idx not in [5, 6] = checks whether the `column_idx` is not in the list [5, 6]
             # it checks if the column being processed is not the 6th or 7th column
-        
         if isinstance(X[0][0], (int, float)) and column_idx not in [5, 6]:  # Exclude special columns from scaling
             scaler = StandardScaler()
             X_scaled = scaler.fit_transform(X) # fit_transform method of the StandardScaler
@@ -138,7 +140,7 @@ def visualize_data(data, headers,brand_encoder, date_encoder):
             # - It gives us a score between -1 and +1:
             #   - A higher score means our clusters are good and distinct.
             #   - A lower score means our clusters might not be very clear.
-        silhouette_avg = silhouette_score(X_scaled, labels)
+        silhouette_avg = silhouette_score(X_scaled, labels) # silhouette_score = a function
         st.text(f"Silhouette Score for column {headers[column_idx]}: {silhouette_avg:.2f}")
 
         
