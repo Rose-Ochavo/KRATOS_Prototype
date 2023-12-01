@@ -15,6 +15,7 @@ from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 import calendar
 import pandas as pd
 import datetime
+
 def load_and_process_data(uploaded_file):
     data = []
 
@@ -182,8 +183,6 @@ def visualize_data(data, headers,brand_encoder, date_encoder):
     # Apply k-means clustering on 'Product' and 'Month'
     apply_kmeans_and_evaluate(data, ["ITEM", "PRICE"])
 
-
-
 def display_association_results(uploaded_file):
     # Read directly from uploaded_file using csv.reader
     text_data = io.StringIO(uploaded_file.getvalue().decode("utf-8"))
@@ -267,10 +266,6 @@ def display_association_results(uploaded_file):
     else:
         st.write("No 2-itemsets available for plotting!")
         
-    
-
-
-
 def run_random_forest_regression(uploaded_file):
     text_data = io.StringIO(uploaded_file.getvalue().decode("utf-8"))
     
@@ -332,8 +327,3 @@ def run_random_forest_regression(uploaded_file):
     ax.grid(True)
 
     return fig, evaluation_scores
-
-
-
-
-
