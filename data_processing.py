@@ -15,6 +15,7 @@ from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 import calendar
 import pandas as pd
 import datetime
+from itertools import islice
 
 def load_and_process_data(uploaded_file):
     data = []
@@ -114,12 +115,46 @@ def visualize_data(data, headers,brand_encoder, date_encoder):
         plt.title(f'KMeans Clustering on {headers[column_idx]}')
         plt.show()
         st.pyplot(plt.gcf())
+        return kmeans.cluster_centers_
+ 
+    # Apply KMeans and capture the centroids
+    centroids_for_brand = apply_kmeans_on_single_column(data, 2, brand_encoder)
+    
+    with st.expander("Quantity Centroid Details"):
+        centroids_for_quantity  = apply_kmeans_on_single_column(data, 4)
+        
+        # Display the meaning of the centroids for the quantity
+        quantity_centroid_meanings = [
+            "Very low quantity (rare or seldom purchased items).",
+            "Very high quantity (major bulk or special event purchases).",
+            "Low to average quantity (commonly purchased items).",
+            "Above average quantity (bulk or frequently purchased items)."
+            
+        ]
 
-    # Call the function with encoder parameter for brand and date columns
-    apply_kmeans_on_single_column(data, 2, brand_encoder)
-    apply_kmeans_on_single_column(data, 4)
-    apply_kmeans_on_single_column(data, 5)
-    apply_kmeans_on_single_column(data, 6, date_encoder)
+        for i, center in enumerate((centroids_for_quantity)):
+            st.text(f"Centroid {i+1}: {quantity_centroid_meanings[i]} (Value: {center[0]:.2f})")
+            
+    with st.expander("Price Centroid Details"):
+        centroids_for_price = apply_kmeans_on_single_column(data, 5)
+        
+        # Display the meaning of the centroids for the price
+        price_centroid_meanings = [
+            
+            "Middle ground between lowest and average-priced items.",
+            "Higher price range (more premium but not the most expensive).",
+            "Highest price range (most premium or expensive).",
+            "Lowest price range (most affordable)."
+            
+        ]
+
+        for i, center in enumerate((centroids_for_price)):
+            st.text(f"Centroid {i+1}: {price_centroid_meanings[i]} (Value: {center[0]:.2f})")
+
+        
+    centroids_for_date = apply_kmeans_on_single_column(data, 6, date_encoder)
+
+    
 
 
 
@@ -182,34 +217,77 @@ def visualize_data(data, headers,brand_encoder, date_encoder):
 
     # Apply k-means clustering on 'Product' and 'Month'
     apply_kmeans_and_evaluate(data, ["ITEM", "PRICE"])
-
+    
 def display_association_results(uploaded_file):
-    # Read directly from uploaded_file using csv.reader
     text_data = io.StringIO(uploaded_file.getvalue().decode("utf-8"))
+    data = list(islice(csv.reader(text_data), 1, None))
+
+    month_name = {
+        '01': 'January',
+        '02': 'February',
+        '03': 'March',
+        '04': 'April',
+        '05': 'May',
+        '06': 'June',
+        '07': 'July',
+        '08': 'August',
+        '09': 'September',
+        '10': 'October',
+        '11': 'November',
+        '12': 'December'
+    }
+
+    # Grouping products by transactions and month
+    monthly_transactions = defaultdict(lambda: defaultdict(set))
     
-    # Read the CSV from the decoded content
-    data = [row for row in csv.reader(text_data)]
-    
-    
-    # Grouping products by transactions
-    transactions = defaultdict(set)
     for row in data:
+        month = row[6].split("/")[0]
         transaction_id = row[1]
         item = row[3]
-        transactions[transaction_id].add(item)
+        monthly_transactions[month][transaction_id].add(item)
+
+    # Initializing itemset_support for all months combined
+    all_itemset_support = {}
+    all_transactions = defaultdict(set)
+    
+    # For each month in the data
+    for month, transactions in sorted(monthly_transactions.items()):
+        st.subheader(f"Month: {month_name[month]}")
+        
+        # Count occurrences of individual items for the month
+        item_counts = Counter(item for items in transactions.values() for item in items)
+
+        # Calculate support for each item for the month
+        total_transactions = len(transactions)
+        item_support = {item: count/total_transactions for item, count in item_counts.items()}
+
+        # Sorting the items by support and get the top 5
+        sorted_items = sorted(item_support.items(), key=lambda x: x[1], reverse=True)[:5]
+
+        # Plotting the top 5 items with highest support for the month
+        items, supports = zip(*sorted_items)
+        plt.figure(figsize=(10, 6))
+        plt.barh(items, supports, color='lightcoral')
+        plt.xlabel('Support')
+        plt.ylabel('Items')
+        plt.title(f'Top 5 Items with Highest Support for Month {month_name[month]}')
+        plt.gca().invert_yaxis()
+        st.pyplot(plt.gcf())
+        
+        # Combining transactions for all months
+        all_transactions.update(transactions)
 
     # Count occurrences of individual items
-    item_counts = Counter(item for items in transactions.values() for item in items)
+    item_counts = Counter(item for items in all_transactions.values() for item in items)
 
     # Calculate support for each item
-    total_transactions = len(transactions)
+    total_transactions = len(all_transactions)
     itemset_support = {frozenset([item]): count/total_transactions for item, count in item_counts.items()}
 
     # Count itemsets
     itemset_counts = Counter()
     max_itemset_size = 2
-
-    for items in transactions.values():
+    for items in all_transactions.values():
         if len(items) < 2:
             continue
         for L in range(2, min(len(items), max_itemset_size) + 1):
@@ -242,14 +320,36 @@ def display_association_results(uploaded_file):
     sorted_rules = sorted(association_rules, key=lambda x: (itemset_support[x[0] | x[1]], x[2]), reverse=True)
 
     # Displaying the results in Streamlit
-    st.subheader("Top Itemsets with Support:")
-    for itemset, support in sorted_itemsets[:10]:
-        st.write(f"{', '.join(itemset)}: Support = {support:.2f}")
+    st.subheader("Top Items with Support:")
+    top_items_data = [{"Itemset": ', '.join(itemset), "Support": support} for itemset, support in sorted_itemsets[:10]]
+    st.table(top_items_data)
+
 
     st.subheader("Pairs with High Support and High Confidence:")
-    for antecedent, consequent, confidence in sorted_rules[:10]:
-        support_value = itemset_support[antecedent | consequent]
-        st.write(f"{', '.join(antecedent)} -> {', '.join(consequent)}: Support = {support_value:.2f}, Confidence = {confidence:.2f}")
+    pairs_data = [{"Antecedent": ', '.join(antecedent), 
+                "Consequent": ', '.join(consequent), 
+                "Support": itemset_support[antecedent | consequent],
+                "Confidence": confidence} for antecedent, consequent, confidence in sorted_rules[:10]]
+    st.table(pairs_data)
+    
+    sorted_pairs_data = sorted(pairs_data, key=lambda x: x['Confidence'], reverse=True)
+
+    # Extract pairs labels and their confidence values for the top 10 pairs
+    pairs_labels = [f"{pair['Antecedent']} -> {pair['Consequent']}" for pair in sorted_pairs_data[:10]]
+    pairs_confidences = [pair['Confidence'] for pair in sorted_pairs_data[:10]]
+
+    # Create the horizontal bar chart using matplotlib
+    plt.figure(figsize=(10, 6))
+    plt.barh(pairs_labels, pairs_confidences, color='lightblue')
+    plt.xlabel('Confidence')
+    plt.ylabel('Pairs')
+    plt.gca().invert_yaxis()  # to have the pair with the highest confidence at the top
+    plt.title('Top 10 Pairs by Highest Confidence')
+    st.pyplot(plt.gcf())
+    
+
+
+    
 
     # Plotting
     if sorted_2_itemsets:
@@ -265,7 +365,7 @@ def display_association_results(uploaded_file):
         st.pyplot(plt.gcf())
     else:
         st.write("No 2-itemsets available for plotting!")
-        
+
 def run_random_forest_regression(uploaded_file):
     text_data = io.StringIO(uploaded_file.getvalue().decode("utf-8"))
     
@@ -283,7 +383,7 @@ def run_random_forest_regression(uploaded_file):
     brands = df['BRAND'].unique()
     month_order = sorted(df['Month_Name'].unique().tolist(), key=lambda x: datetime.datetime.strptime(x, '%B'))
 
-    # Set up plotting
+    # Set up plotting for brand popularity
     fig, ax = plt.subplots(figsize=(12, 6))
 
     # Evaluation scores
@@ -317,13 +417,17 @@ def run_random_forest_regression(uploaded_file):
         all_months = month_order + [calendar.month_name[(month_order.index(month_order[-1]) + 1 + i) % 12 + 1] for i in range(3)]
         ax.plot(all_months, all_data, marker='o', label=brand)
         ax.scatter(month_order, monthly_sales['Occurrences'], color='gray')  # actual data points
-
-    # Formatting the plot
+  
+    # Formatting the plot for brand popularity
     ax.set_xlabel('Month')
     ax.set_ylabel('Number of Occurrences')
     ax.set_title('Predicted Brand Popularity in Upcoming Months')
     ax.legend()
     ax.set_ylim(bottom=0)
     ax.grid(True)
+    st.pyplot(fig)  # Display the brand popularity plot in Streamlit
 
-    return fig, evaluation_scores
+    # Plotting the evaluation scores
+    evaluation_df = pd.DataFrame(evaluation_scores, index=['MAE', 'MSE', 'R2']).T
+    st.markdown(f'<style>table {{font-size: 20px;}}</style>', unsafe_allow_html=True)
+    st.table(evaluation_df)
